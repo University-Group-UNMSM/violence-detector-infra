@@ -5,7 +5,7 @@ export class NDArrayUtils {
 
   private constructor() {}
 
-  public static toArray(ndArray: any): number[][][][] {
+  public static toArray(ndArray: Float32Array): number[][][][] {
     const array: number[][][][] = Array.from({ length: 1 }, () =>
       Array.from({ length: NDArrayUtils.X }, () =>
         Array.from({ length: NDArrayUtils.Y }, () =>
@@ -14,12 +14,11 @@ export class NDArrayUtils {
       )
     );
 
-    const arrayFloat = ndArray.toFloatArray();
     let n = 0;
     for (let x = 0; x < NDArrayUtils.X; x++) {
       for (let y = 0; y < NDArrayUtils.Y; y++) {
         for (let z = 0; z < NDArrayUtils.Z; z++) {
-          array[0][x][y][z] = arrayFloat[n++];
+          array[0][x][y][z] = ndArray[n++];
         }
       }
     }

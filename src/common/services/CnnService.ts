@@ -17,6 +17,18 @@ class CnnService {
     return transferValues;
   }
 
+  public async fakePredict(frames: Buffer[]): Promise<number[][]> {
+    console.log("Started fakePredict(frames) method");
+    const transferValuesPromises = frames.map((frame) =>
+      this.fakeToTransferValue(frame)
+    );
+    const transferValues = await Promise.all(transferValuesPromises);
+
+    console.log("Predictions from CnnService:", transferValues);
+    console.log("End fakePredict(frames) method");
+    return transferValues;
+  }
+
   private async getTransferValues(frames: Buffer[]): Promise<number[][]> {
     const transferValuesPromises = frames.map((frame) =>
       this.toTransferValue(frame)
@@ -26,7 +38,7 @@ class CnnService {
   }
 
   private async toTransferValue(file: Buffer): Promise<number[]> {
-    const ndArray = FrameUtils.getNdArray(file);
+    const ndArray = await FrameUtils.getNdArray(file);
     const array = NDArrayUtils.toArray(ndArray);
     const bytes = Buffer.from(JSON.stringify(array));
     const endpointResponse = await this.endpointService.getResponse(
@@ -34,6 +46,12 @@ class CnnService {
       CnnService.ENDPOINT_NAME
     );
     return endpointResponse.predictions[0];
+  }
+
+  private async fakeToTransferValue(file: Buffer): Promise<number[]> {
+    const ndArray = await FrameUtils.getNdArray(file);
+    const array = NDArrayUtils.toArray(ndArray);
+    return array[0][0][0];
   }
 }
 

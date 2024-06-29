@@ -1,4 +1,4 @@
-import { RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
+import { Duration, RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
 import { Bucket } from "aws-cdk-lib/aws-s3";
 import { Construct } from "constructs";
 import { ConfigProps } from "./config";
@@ -50,27 +50,24 @@ export class DetectViolenceStack extends Stack {
       })
     );
 
-    const opencvLayer = LayerVersion.fromLayerVersionArn(
+    const sharpLayer = LayerVersion.fromLayerVersionArn(
       this,
       "OpenCVLayer",
-      config.OPENCV_LAMBDA_LAYER_ARN
+      config.SHARP_LAMBDA_LAYER_ARN
     );
 
     const makePredictionHandler = new NodejsFunction(
       this,
       "MakePredictionHandler",
       {
-        memorySize: 256,
+        memorySize: 1024,
         runtime: Runtime.NODEJS_20_X,
         bundling: {
           sourceMap: true,
-          nodeModules: ["@u4/opencv4nodejs"],
-          externalModules: ["aws-sdk", "nock", "mock-aws-s3"],
-          loader: {
-            ".html": "file",
-          },
+          externalModules: ["sharp"],
         },
-        layers: [opencvLayer],
+        layers: [sharpLayer],
+        timeout: Duration.seconds(30),
         logRetention: RetentionDays.ONE_MONTH,
         entry: "src/lambdas/MakePredictionHandler.ts",
         functionName: "make-prediction-lambda-function",

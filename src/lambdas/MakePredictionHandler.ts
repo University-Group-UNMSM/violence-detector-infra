@@ -43,13 +43,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (
       try {
         // Obtener los valores de transferencia del modelo CNN
         const cnnService = new CnnService();
-        const transferValues: number[][] = await cnnService.predict(frames);
+        const transferValues: number[][] = await cnnService.fakePredict(frames);
         console.log("Frames:", frames.length);
 
         // Predecir usando el modelo LSTM
         const lstmService = new LstmService(new EndpointService());
-        const predictions = await lstmService.predict([transferValues]);
-        const results = predictions[0];
+        const predictions = await lstmService.fakePredict([transferValues]);
+        const results = predictions.predictions[0];
         console.log("Predictions:", results);
 
         console.log("End detect() method");
