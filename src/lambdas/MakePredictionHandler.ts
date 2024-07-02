@@ -14,9 +14,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (
   event: APIGatewayProxyEventV2
 ): Promise<APIGatewayProxyResultV2> => {
   console.log("Started detect() method");
+  console.log("Event:", event);
 
   const contentType =
     event.headers["content-type"] ?? event.headers["Content-Type"];
+
+  console.log("Content-Type:", contentType);
 
   if (!contentType?.startsWith("multipart/form-data")) {
     return Response.serverError(
@@ -43,12 +46,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (
       try {
         // Obtener los valores de transferencia del modelo CNN
         const cnnService = new CnnService();
-        const transferValues: number[][] = await cnnService.fakePredict(frames);
+        const transferValues: number[][] = await cnnService.predict(frames);
         console.log("Frames:", frames.length);
 
         // Predecir usando el modelo LSTM
         const lstmService = new LstmService(new EndpointService());
-        const predictions = await lstmService.fakePredict([transferValues]);
+        const predictions = await lstmService.predict([transferValues]);
         const results = predictions.predictions[0];
         console.log("Predictions:", results);
 

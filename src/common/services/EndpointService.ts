@@ -24,7 +24,10 @@ class EndpointService {
         Body: bytes,
       })
     );
-    const endpointResponseStr = response.Body?.toString() || "";
+
+    // const decoder = new TextDecoder("utf-8");
+    // const decodedResponse = decoder.decode(response.Body as Uint8Array);
+    const endpointResponseStr = response.Body?.transformToString("utf-8") || "";
     return ObjectMapperUtils.toObject(endpointResponseStr);
   }
 }

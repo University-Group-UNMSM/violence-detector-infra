@@ -33,12 +33,12 @@ export const handler = async (
 
     // Obtener los valores de transferencia del modelo CNN
     const cnnService = new CnnService();
-    const transferValues: number[][] = await cnnService.fakePredict(frames);
+    const transferValues: number[][] = await cnnService.predict(frames);
     console.log("Frames:", frames.length);
 
     // Predecir usando el modelo LSTM
     const lstmService = new LstmService(new EndpointService());
-    const predictions = await lstmService.fakePredict([transferValues]);
+    const predictions = await lstmService.predict([transferValues]);
     const results = predictions.predictions[0];
     console.log("Predictions:", results);
 

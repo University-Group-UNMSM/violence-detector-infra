@@ -70,6 +70,36 @@ export class DetectViolenceStack extends Stack {
       ],
     });
 
+    const domainModel = new CfnDomain(this, "DomainModel", {
+      authMode: "IAM",
+      defaultUserSettings: {
+        executionRole: roleSageMakerExecution.roleArn,
+      },
+      vpcId: config.AWS_DEFAULT_VPC_ID,
+      subnetIds: [
+        "subnet-032831b424fa02b48",
+        "subnet-03f45b11eda9e15f6",
+        "subnet-03231bccd6547ee37",
+        "subnet-0481899388170035b",
+        "subnet-056178594ba65c31f",
+        "subnet-06eb838e5e12de85e",
+      ],
+      domainName: "domain-detect-violence",
+    });
+
+    // Agregamos un perfil de usuario
+    new CfnUserProfile(this, "UserProfileDomain", {
+      domainId: domainModel.ref,
+      userProfileName: "user-profile-detect-violence",
+    });
+
+    // Creamos la instancia de notebook
+    new CfnNotebookInstance(this, "NotebookInstance", {
+      instanceType: "ml.t3.2xlarge",
+      roleArn: roleSageMakerExecution.roleArn,
+      platformIdentifier: "notebook-al2-v1",
+    });
+
     // Le damos permisos al role para acceder al bucket
     roleSageMakerExecution.addToPolicy(
       new PolicyStatement({
@@ -113,6 +143,16 @@ export class DetectViolenceStack extends Stack {
         entry: "src/lambdas/MakePredictionHandler.ts",
         functionName: "make-prediction-lambda-function",
       }
+    );
+
+    // Agregando policy para invocar el endpoint de sagemaker
+    makePredictionHandler.addToRolePolicy(
+      new PolicyStatement({
+        actions: ["sagemaker:InvokeEndpoint"],
+        resources: [
+          `arn:aws:sagemaker:${config.AWS_REGION}:${config.AWS_ACCOUNT_ID}:endpoint/*`,
+        ],
+      })
     );
 
     // Http api para la detección
@@ -194,6 +234,15 @@ export class DetectViolenceStack extends Stack {
         functionName: "detect-violence-websocket-make-prediction-lambda",
         entry: path.resolve("src/lambdas/RealTimePrediction.ts"),
       }
+    );
+
+    websocketMakePredictionHandler.addToRolePolicy(
+      new PolicyStatement({
+        actions: ["sagemaker:InvokeEndpoint"],
+        resources: [
+          `arn:aws:sagemaker:${config.AWS_REGION}:${config.AWS_ACCOUNT_ID}:endpoint/*`,
+        ],
+      })
     );
 
     const websocketHandler = new NodejsFunction(this, "WebsocketHandler", {
